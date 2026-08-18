@@ -58,6 +58,11 @@ class DrawingModel extends ChangeNotifier {
     selectedColor = color;
     notifyListeners();
   }
+
+  void setLineWidth(double width) {
+    lineWidth = width;
+    notifyListeners();
+  }
 }
 
 // ---------------------------------------------------------------- Canvas
@@ -187,6 +192,61 @@ class ColorPalette extends StatelessWidget {
               );
             }).toList(),
           ),
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------- Brush
+
+class BrushPalette extends StatelessWidget {
+  const BrushPalette({required this.model, super.key});
+
+  final DrawingModel model;
+
+  /// Thin / medium / thick. Thin matters for long words like "Wednesday"
+  /// where a fat stroke smears adjacent letters together.
+  static const List<double> sizes = <double>[6, 11, 18];
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: model,
+      builder: (context, _) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: sizes.map((size) {
+            final selected = (model.lineWidth - size).abs() < 0.5;
+            return GestureDetector(
+              onTap: () => model.setLineWidth(size),
+              child: Container(
+                width: 44,
+                height: 34,
+                margin: const EdgeInsets.symmetric(horizontal: 5),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? Colors.white
+                      : Colors.white.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: selected ? Colors.black54 : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Container(
+                    width: size,
+                    height: size,
+                    decoration: BoxDecoration(
+                      color: model.selectedColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         );
       },
     );

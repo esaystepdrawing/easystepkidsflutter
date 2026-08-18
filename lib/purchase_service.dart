@@ -16,7 +16,7 @@ class PurchaseService {
   bool _isInitialized = false;
 
   /// Must match the product ID created in Google Play Console.
-  static const String unlockProductId = 'com.easystepkids.app.alllanguages';
+  static const String unlockProductId = 'com.easystepkids.app';
 
   static const String _prefsKey = 'unlocked_all_languages';
 

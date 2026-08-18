@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'app_state.dart';
 import 'models.dart';
+import 'paywall_screen.dart';
 import 'splash_screen.dart';
 import 'tracing_screen.dart';
 
@@ -180,12 +181,7 @@ class _LanguageSelector extends StatelessWidget {
                   if (available) {
                     langProvider.setLanguage(lang);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content:
-                        Text('Unlock all languages to use ${lang.name}'),
-                      ),
-                    );
+                    PaywallScreen.show(context);
                   }
                 },
                 child: Opacity(opacity: available ? 1 : 0.45, child: card),

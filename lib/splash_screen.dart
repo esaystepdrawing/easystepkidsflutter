@@ -78,6 +78,8 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     await context.read<ProgressProvider>().loadProgress();
     if (!mounted) return;
+    await context.read<TTSProvider>().loadSettings();
+    if (!mounted) return;
 
     // Hold the splash for the remainder of the minimum duration.
     final elapsed = DateTime.now().difference(started);
@@ -241,9 +243,9 @@ class _SplashScreenState extends State<SplashScreen>
             color: Colors.white,
             alignment: Alignment.center,
             child: const Text(
-              'SAI',
+              'Easy Step Kids',
               style: TextStyle(
-                fontSize: 64,
+                fontSize: 24,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFFFF8C8C),
               ),

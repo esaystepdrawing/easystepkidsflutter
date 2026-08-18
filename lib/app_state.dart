@@ -85,6 +85,14 @@ class PurchaseProvider extends ChangeNotifier {
 
       _product = await _purchaseService.fetchProduct();
       notifyListeners();
+
+      // The cached entitlement lives in SharedPreferences, which an uninstall
+      // wipes. Ask the store what this account already owns; anything owned
+      // arrives on the purchase stream as PurchaseStatus.restored and flips
+      // the flag via the callback above. Mirrors refreshEntitlement() on iOS.
+      if (!_isUnlocked) {
+        await _purchaseService.restorePurchases();
+      }
     } catch (_) {
       _error = 'Failed to initialize purchases';
       notifyListeners();
@@ -213,12 +221,41 @@ class ProgressProvider extends ChangeNotifier {
 // ---------------------------------------------------------------- TTS
 
 class TTSProvider extends ChangeNotifier {
+  static const String _mutedKey = 'tts_muted';
+
   final TTSService _ttsService = TTSService();
   bool _isSpeaking = false;
+  bool _isMuted = false;
 
   bool get isSpeaking => _isSpeaking;
+  bool get isMuted => _isMuted;
+
+  /// Restores the saved mute preference. Called during startup.
+  Future<void> loadSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isMuted = prefs.getBool(_mutedKey) ?? false;
+    } catch (_) {
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleMute() async {
+    _isMuted = !_isMuted;
+    notifyListeners();
+
+    if (_isMuted) await _ttsService.stop();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_mutedKey, _isMuted);
+    } catch (_) {}
+  }
 
   Future<void> speak(String text, String languageCode) async {
+    if (_isMuted) return;
+
     _isSpeaking = true;
     notifyListeners();
     try {

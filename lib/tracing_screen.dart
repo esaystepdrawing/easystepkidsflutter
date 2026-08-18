@@ -8,7 +8,7 @@ import 'tracing_guide.dart';
 
 /// The main learning screen: a large "ghost" character/word the child traces
 /// over with a finger. Background color changes with every item and the sound
-/// plays automatically (and on demand via the speaker button).
+/// plays automatically (unless muted).
 class TracingScreen extends StatefulWidget {
   const TracingScreen({required this.category, super.key});
 
@@ -24,6 +24,11 @@ class _TracingScreenState extends State<TracingScreen> {
 
   int _index = 0;
   bool _showLowercase = false;
+
+  /// Once the child picks a brush size it sticks; until then the width adapts
+  /// to how long the text is.
+  bool _brushChosenByUser = false;
+
   late List<TraceItem> _items;
   late AppLanguage _language;
 
@@ -34,18 +39,34 @@ class _TracingScreenState extends State<TracingScreen> {
     _language = lp.currentLanguage;
     _items = lp.itemsFor(widget.category);
 
+    _drawing.addListener(_watchBrushChanges);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _applyItemColor();
+      _applyItemDefaults();
       _speak();
     });
   }
 
   @override
   void dispose() {
+    _drawing.removeListener(_watchBrushChanges);
     _drawing.dispose();
     _stripController.dispose();
     super.dispose();
   }
+
+  /// Detects a manual brush pick so auto-sizing stops overriding it.
+  double? _lastKnownWidth;
+  void _watchBrushChanges() {
+    if (_lastKnownWidth != null &&
+        _lastKnownWidth != _drawing.lineWidth &&
+        !_applyingDefaults) {
+      _brushChosenByUser = true;
+    }
+    _lastKnownWidth = _drawing.lineWidth;
+  }
+
+  bool _applyingDefaults = false;
 
   TraceItem get _item => _items[_index];
 
@@ -73,6 +94,15 @@ class _TracingScreenState extends State<TracingScreen> {
     return _showLowercase ? text.toLowerCase() : text.toUpperCase();
   }
 
+  /// Long text renders smaller, so a fat stroke bleeds across neighbouring
+  /// letters. Scale the default width down as the text gets longer.
+  double _autoLineWidth(String text) {
+    final length = text.runes.length;
+    if (length <= 2) return 18;
+    if (length <= 5) return 11;
+    return 6;
+  }
+
   void _speak() {
     var text = _item.spoken;
     if (_language.hasLetterCase && widget.category == Category.alphabets) {
@@ -81,9 +111,18 @@ class _TracingScreenState extends State<TracingScreen> {
     context.read<TTSProvider>().speak(text, _language.speechCode);
   }
 
-  void _applyItemColor() {
+  void _applyItemDefaults() {
+    _applyingDefaults = true;
+
     final color = ItemColors.get(_item.colorKey);
     if (color != null) _drawing.setColor(color);
+
+    if (!_brushChosenByUser) {
+      _drawing.setLineWidth(_autoLineWidth(_displayText));
+    }
+
+    _lastKnownWidth = _drawing.lineWidth;
+    _applyingDefaults = false;
   }
 
   void _go(int newIndex) {
@@ -98,7 +137,7 @@ class _TracingScreenState extends State<TracingScreen> {
 
     setState(() => _index = newIndex);
     _drawing.clear();
-    _applyItemColor();
+    _applyItemDefaults();
     _speak();
     _scrollStripTo(newIndex);
   }
@@ -125,14 +164,21 @@ class _TracingScreenState extends State<TracingScreen> {
       );
     }
 
-    final canvasHeight = MediaQuery.of(context).size.height * 0.38;
-
     return Scaffold(
-      extendBodyBehindAppBar: false,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: Text(widget.category.localizedTitle(_language.id)),
         centerTitle: true,
+        actions: [
+          Consumer<TTSProvider>(
+            builder: (context, tts, _) => IconButton(
+              tooltip: tts.isMuted ? 'Unmute' : 'Mute',
+              icon: Icon(tts.isMuted ? Icons.volume_off : Icons.volume_up),
+              color: tts.isMuted ? Colors.red : null,
+              onPressed: tts.toggleMute,
+            ),
+          ),
+        ],
       ),
       body: AnimatedContainer(
         duration: const Duration(milliseconds: 500),
@@ -143,58 +189,63 @@ class _TracingScreenState extends State<TracingScreen> {
             children: [
               _header(),
               const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Container(
-                    height: canvasHeight,
-                    width: double.infinity,
-                    color: Colors.white.withOpacity(0.35),
-                    child: Stack(
-                      children: [
-                        // Guide layer
-                        Positioned.fill(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: _item.shapeKey != null
-                                ? Column(
-                              children: [
-                                Expanded(
-                                  child: DottedShape(
-                                      shapeKey: _item.shapeKey!),
-                                ),
-                                Padding(
-                                  padding:
-                                  const EdgeInsets.only(bottom: 8),
-                                  child: Text(
-                                    _item.display,
-                                    style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black54,
+              // Expanded rather than a fixed fraction of screen height: the
+              // canvas absorbs whatever is left after the controls, so short
+              // phones don't overflow now that there's an extra row.
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      width: double.infinity,
+                      color: Colors.white.withOpacity(0.35),
+                      child: Stack(
+                        children: [
+                          // Guide layer
+                          Positioned.fill(
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: _item.shapeKey != null
+                                  ? Column(
+                                children: [
+                                  Expanded(
+                                    child: DottedShape(
+                                        shapeKey: _item.shapeKey!),
+                                  ),
+                                  Padding(
+                                    padding:
+                                    const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      _item.display,
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black54,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            )
-                                : DottedText(text: _displayText),
+                                ],
+                              )
+                                  : DottedText(text: _displayText),
+                            ),
                           ),
-                        ),
-                        // Drawing layer on top
-                        Positioned.fill(
-                          child: DrawingCanvas(model: _drawing),
-                        ),
-                      ],
+                          // Drawing layer on top
+                          Positioned.fill(
+                            child: DrawingCanvas(model: _drawing),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
+              const SizedBox(height: 6),
+              BrushPalette(model: _drawing),
               const SizedBox(height: 4),
               ColorPalette(model: _drawing),
-              const Spacer(),
               if (_showItemStrip) _itemStrip(),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               _controls(),
               const SizedBox(height: 12),
             ],
@@ -214,8 +265,7 @@ class _TracingScreenState extends State<TracingScreen> {
       child: Row(
         children: [
           Container(
-            padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.7),
               borderRadius: BorderRadius.circular(20),
@@ -238,18 +288,18 @@ class _TracingScreenState extends State<TracingScreen> {
               ),
             ),
           const Spacer(),
-          if (_language.hasLetterCase &&
-              widget.category == Category.alphabets)
+          if (_language.hasLetterCase && widget.category == Category.alphabets)
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: GestureDetector(
                 onTap: () {
                   setState(() => _showLowercase = !_showLowercase);
                   _drawing.clear();
+                  _applyItemDefaults();
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.purple,
                     borderRadius: BorderRadius.circular(22),
@@ -265,7 +315,7 @@ class _TracingScreenState extends State<TracingScreen> {
                 ),
               ),
             ),
-          _circleButton(Icons.volume_up, Colors.blue, _speak),
+          _circleButton(Icons.replay, Colors.blue, _speak),
           const SizedBox(width: 8),
           _circleButton(Icons.delete, Colors.orange, _drawing.clear),
         ],
@@ -288,8 +338,8 @@ class _TracingScreenState extends State<TracingScreen> {
 
   Widget _itemStrip() {
     return Container(
-      height: 64,
-      margin: const EdgeInsets.symmetric(horizontal: 12),
+      height: 60,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.06),
         borderRadius: BorderRadius.circular(16),
@@ -297,7 +347,7 @@ class _TracingScreenState extends State<TracingScreen> {
       child: ListView.separated(
         controller: _stripController,
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         itemCount: _items.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
@@ -332,8 +382,7 @@ class _TracingScreenState extends State<TracingScreen> {
                       style: TextStyle(
                         fontSize: item.display.length > 3 ? 11 : 16,
                         fontWeight: FontWeight.bold,
-                        color:
-                        selected ? Colors.white : Colors.black87,
+                        color: selected ? Colors.white : Colors.black87,
                       ),
                     ),
                   ),

@@ -2,7 +2,8 @@ name: easystep_kids
 description: Learn alphabets, numbers, and words in 20 languages. EasyStep Kids helps children practice handwriting through interactive tracing.
 publish_to: 'none'
 
-version: 1.0.0+1
+# pubspec.yaml
+version: 1.0.0+5      # name+buildNumber; buildNumber must increase every upload
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -17,9 +18,19 @@ dependencies:
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/easystepkids.jpeg"
+  adaptive_icon_background: "#FFD966"
+  adaptive_icon_foreground: "assets/easystepkids.jpeg"
+
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  change_app_package_name: ^1.5.0
 
 flutter:
   uses-material-design: true
