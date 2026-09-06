@@ -179,7 +179,7 @@ class _TracingScreenState extends State<TracingScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-              'assets/images/$letter/$name.png',
+              'assets/images/$letter/$name.webp',
               width: 54,
               height: 54,
               fit: BoxFit.contain,

@@ -270,7 +270,7 @@ class _AlphabetImagesViewState extends State<AlphabetImagesView>
                 ),
               ),
               child: Image.asset(
-                'assets/images/${widget.letter.toUpperCase()}/$name.png',
+                'assets/images/${widget.letter.toUpperCase()}/$name.webp',
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => Icon(
                   Icons.image_not_supported_outlined,
