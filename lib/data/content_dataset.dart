@@ -9,7 +9,7 @@ class ContentDataset {
   // ------------------------------------------------------------ Languages
 
   static final List<AppLanguage> languages = <AppLanguage>[
-    AppLanguage(id: "en", name: "English", nativeName: "English", speechCode: "en-US", glyph: "A", hasLetterCase: true),
+    AppLanguage(id: "en", name: "English", nativeName: "English", speechCode: "en-US", glyph: "A", hasLetterCase: true, isFree: true),
     AppLanguage(id: "hi", name: "Hindi", nativeName: "हिन्दी", speechCode: "hi-IN", glyph: "अ", hasLetterCase: false),
     AppLanguage(id: "te", name: "Telugu", nativeName: "తెలుగు", speechCode: "te-IN", glyph: "అ", hasLetterCase: false),
     AppLanguage(id: "ta", name: "Tamil", nativeName: "தமிழ்", speechCode: "ta-IN", glyph: "அ", hasLetterCase: false),
@@ -39,6 +39,7 @@ class ContentDataset {
   /// Returns the trace items for a language + category, or an empty list.
   static List<TraceItem> items(String languageId, Category category) {
     if (category == Category.shapes) return shapes(languageId);
+    if (category == Category.trafficSigns) return trafficSigns(languageId);
     return _index[languageId]?[category] ?? const <TraceItem>[];
   }
 
@@ -2353,6 +2354,127 @@ class ContentDataset {
     TraceItem("پانی"),
     TraceItem("سیب"),
   ];
+
+  // ------------------------------------------------------------ Traffic Signs
+
+  static const List<String> trafficSignKeys = <String>[
+    "stop",
+    "yield",
+    "go",
+    "warning",
+    "school",
+    "noentry",
+    "parking",
+    "pedestrian",
+    "speedlimit",
+    "railroad",
+    "oneway",
+    "noparking",
+    "roundabout",
+    "bikepath",
+    "hospital",
+  ];
+
+  static const Map<String, List<String>> _trafficSignNames = <String, List<String>>{
+    "en": <String>[
+      "Stop",
+      "Yield",
+      "Go",
+      "Warning",
+      "School Zone",
+      "No Entry",
+      "Parking",
+      "Pedestrian",
+      "Speed Limit",
+      "Railroad",
+      "One Way",
+      "No Parking",
+      "Roundabout",
+      "Bike Path",
+      "Hospital",
+    ],
+    "hi": <String>[
+      "रुकें",
+      "रास्ता दें",
+      "आगे बढ़ें",
+      "चेतावनी",
+      "स्कूल क्षेत्र",
+      "प्रवेश निषेध",
+      "पार्किंग",
+      "पैदल यात्री",
+      "गति सीमा",
+      "रेलवे क्रॉसिंग",
+      "एकतरफा रास्ता",
+      "पार्किंग निषेध",
+      "गोल चक्कर",
+      "साइकिल मार्ग",
+      "अस्पताल",
+    ],
+    "es": <String>[
+      "Alto",
+      "Ceda el paso",
+      "Siga",
+      "Advertencia",
+      "Zona escolar",
+      "Prohibido el paso",
+      "Estacionamiento",
+      "Paso de peatones",
+      "Límite de velocidad",
+      "Cruce de ferrocarril",
+      "Sentido único",
+      "No estacionar",
+      "Rotonda",
+      "Ciclovía",
+      "Hospital",
+    ],
+    "fr": <String>[
+      "Arrêt",
+      "Cédez le passage",
+      "Avancez",
+      "Attention",
+      "Zone scolaire",
+      "Sens interdit",
+      "Parking",
+      "Passage piétons",
+      "Limitation de vitesse",
+      "Passage à niveau",
+      "Sens unique",
+      "Stationnement interdit",
+      "Rond-point",
+      "Piste cyclable",
+      "Hôpital",
+    ],
+    "de": <String>[
+      "Halt",
+      "Vorfahrt gewähren",
+      "Freie Fahrt",
+      "Achtung",
+      "Schule",
+      "Einfahrt verboten",
+      "Parken",
+      "Fußgänger",
+      "Tempolimit",
+      "Bahnübergang",
+      "Einbahnstraße",
+      "Parkverbot",
+      "Kreisverkehr",
+      "Radweg",
+      "Krankenhaus",
+    ],
+  };
+
+  /// Returns the traffic signs items for the given language id.
+  /// Falls back to English names if the requested language is not mapped.
+  static List<TraceItem> trafficSigns(String languageId) {
+    final names = _trafficSignNames[languageId] ?? _trafficSignNames["en"]!;
+    return List.generate(
+      trafficSignKeys.length,
+          (i) => TraceItem(
+        names[i],
+        shapeKey: 'traffic_${trafficSignKeys[i]}', // or signKey depending on your item model
+      ),
+    );
+  }
 
   // ------------------------------------------------------------ Index
 

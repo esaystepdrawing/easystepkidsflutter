@@ -4,11 +4,6 @@ import 'package:provider/provider.dart';
 import 'app_state.dart';
 import 'main.dart' show HomeScreen;
 
-/// Port of SplashView.swift + the 2.5s hold in ContentView.swift.
-///
-/// The logo bounces in with a spring, then the title block fades up. Startup
-/// data (saved language, progress) loads in parallel; the splash stays on
-/// screen for at least [_minimumDuration] so the animation is never clipped.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -29,13 +24,10 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-
-    // Logo: scale 0.4 -> 1.0 with a spring-like overshoot, sliding up 30pt.
     _logoScale = Tween<double>(begin: 0.4, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -48,8 +40,6 @@ class _SplashScreenState extends State<SplashScreen>
         curve: const Interval(0.0, 0.60, curve: Curves.easeOut),
       ),
     );
-
-    // Title block: fades in slightly later, rising 20pt.
     _titleOpacity = CurvedAnimation(
       parent: _controller,
       curve: const Interval(0.33, 0.75, curve: Curves.easeOut),
@@ -60,7 +50,6 @@ class _SplashScreenState extends State<SplashScreen>
         curve: const Interval(0.33, 0.75, curve: Curves.easeOut),
       ),
     );
-
     _controller.forward();
     WidgetsBinding.instance.addPostFrameCallback((_) => _boot());
   }
@@ -73,22 +62,18 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _boot() async {
     final started = DateTime.now();
-
     await context.read<LanguageProvider>().loadSavedLanguage();
     if (!mounted) return;
     await context.read<ProgressProvider>().loadProgress();
     if (!mounted) return;
     await context.read<TTSProvider>().loadSettings();
     if (!mounted) return;
-
-    // Hold the splash for the remainder of the minimum duration.
     final elapsed = DateTime.now().difference(started);
     final remaining = _minimumDuration - elapsed;
     if (remaining > Duration.zero) {
       await Future<void>.delayed(remaining);
     }
     if (!mounted) return;
-
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 600),
@@ -107,110 +92,41 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFFD966), // warm yellow
-              Color(0xFFFF8C8C), // coral
-            ],
+            colors: [Color(0xFFFFD966), Color(0xFFFF8C8C)],
           ),
         ),
         child: SafeArea(
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, _) {
-              return Stack(
-                children: [
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Transform.translate(
-                          offset: Offset(0, _logoOffset.value),
-                          child: Transform.scale(
-                            scale: _logoScale.value,
-                            child: _logo(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Opacity(
+              return OrientationBuilder(builder: (ctx, orientation) {
+                final isLandscape = orientation == Orientation.landscape;
+                return Stack(
+                  children: [
+                    isLandscape
+                        ? _landscapeContent()
+                        : _portraitContent(),
+                    // Footer
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Opacity(
                           opacity: _titleOpacity.value,
-                          child: Transform.translate(
-                            offset: Offset(0, _titleOffset.value),
-                            child: Column(
-                              children: [
-                                const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.edit,
-                                        size: 34, color: Colors.white),
-                                    SizedBox(width: 20),
-                                    Icon(Icons.brush,
-                                        size: 34, color: Colors.white),
-                                    SizedBox(width: 20),
-                                    Icon(Icons.palette,
-                                        size: 34, color: Colors.white),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'EasyStep Kids',
-                                  style: TextStyle(
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black26,
-                                        blurRadius: 2,
-                                        offset: Offset(0, 1),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'SAI',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                    letterSpacing: 6,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Sketch • Art • Imagine',
-                                  style: TextStyle(
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white.withOpacity(0.9),
-                                  ),
-                                ),
-                              ],
+                          child: Text(
+                            'easystepkids.com',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withOpacity(0.8),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Opacity(
-                        opacity: _titleOpacity.value,
-                        child: Text(
-                          'easystepkids.com',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white.withOpacity(0.8),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              );
+                  ],
+                );
+              });
             },
           ),
         ),
@@ -218,14 +134,123 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  /// The bundled logo, falling back to a lettermark if the asset is missing
-  /// so the splash never renders as a broken image.
-  Widget _logo() {
+  // ── Portrait: logo on top, title below ───────────────────────────
+
+  Widget _portraitContent() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Transform.translate(
+            offset: Offset(0, _logoOffset.value),
+            child: Transform.scale(
+              scale: _logoScale.value,
+              child: _logo(size: 180),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Opacity(
+            opacity: _titleOpacity.value,
+            child: Transform.translate(
+              offset: Offset(0, _titleOffset.value),
+              child: _titleBlock(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Landscape: logo left, title right ────────────────────────────
+
+  Widget _landscapeContent() {
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Transform.translate(
+            offset: Offset(0, _logoOffset.value),
+            child: Transform.scale(
+              scale: _logoScale.value,
+              child: _logo(size: 130),  // smaller in landscape
+            ),
+          ),
+          const SizedBox(width: 40),
+          Opacity(
+            opacity: _titleOpacity.value,
+            child: Transform.translate(
+              offset: Offset(0, _titleOffset.value),
+              child: _titleBlock(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Shared title block ────────────────────────────────────────────
+
+  Widget _titleBlock() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.edit, size: 28, color: Colors.white),
+            SizedBox(width: 16),
+            Icon(Icons.brush, size: 28, color: Colors.white),
+            SizedBox(width: 16),
+            Icon(Icons.palette, size: 28, color: Colors.white),
+          ],
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'EasyStep Kids',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                  color: Colors.black26,
+                  blurRadius: 2,
+                  offset: Offset(0, 1)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'SAI',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            letterSpacing: 6,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Sketch • Art • Imagine',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white.withOpacity(0.9),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Logo widget ───────────────────────────────────────────────────
+
+  Widget _logo({double size = 220}) {
     return Container(
-      width: 220,
-      height: 220,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(40),
+        borderRadius: BorderRadius.circular(size * 0.18),
         boxShadow: const [
           BoxShadow(
             color: Colors.black26,
@@ -235,7 +260,7 @@ class _SplashScreenState extends State<SplashScreen>
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(40),
+        borderRadius: BorderRadius.circular(size * 0.18),
         child: Image.asset(
           'assets/easystepkids.jpeg',
           fit: BoxFit.cover,
@@ -243,9 +268,10 @@ class _SplashScreenState extends State<SplashScreen>
             color: Colors.white,
             alignment: Alignment.center,
             child: const Text(
-              'Easy Step Kids',
+              'Easy\nStep\nKids',
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFFFF8C8C),
               ),

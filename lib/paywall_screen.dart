@@ -1,25 +1,9 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
 import 'app_state.dart';
-import 'data/content_dataset.dart';
 
-/// Port of PaywallView.swift. A parental gate guards the purchase, then the
-/// one-time unlock is offered. Closes itself as soon as the entitlement lands.
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
-
-  static Future<void> show(BuildContext context) {
-    return Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (_) => const PaywallScreen(),
-      ),
-    );
-  }
 
   @override
   State<PaywallScreen> createState() => _PaywallScreenState();
@@ -27,167 +11,11 @@ class PaywallScreen extends StatefulWidget {
 
 class _PaywallScreenState extends State<PaywallScreen> {
   bool _gatePassed = false;
-  bool _popped = false;
+  bool _purchasing = false;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        elevation: 0,
-      ),
-      body: Consumer<PurchaseProvider>(
-        builder: (context, purchase, _) {
-          // Dismiss once unlocked, mirroring .onChange(of: store.isUnlocked).
-          if (purchase.isUnlocked && !_popped) {
-            _popped = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) Navigator.of(context).maybePop();
-            });
-          }
-
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: _gatePassed
-                  ? _PurchaseContent(purchase: purchase)
-                  : ParentalGate(
-                onSuccess: () => setState(() => _gatePassed = true),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------- Purchase
-
-class _PurchaseContent extends StatelessWidget {
-  const _PurchaseContent({required this.purchase});
-
-  final PurchaseProvider purchase;
-
-  @override
-  Widget build(BuildContext context) {
-    // Everything except English is behind the unlock.
-    final paid = ContentDataset.languages.where((l) => l.id != 'en').toList();
-    final names = paid.take(5).map((l) => l.name).join(', ');
-    final more = paid.length - 5;
-
-    return Column(
-      children: [
-        const Text('🌍', style: TextStyle(fontSize: 70)),
-        const SizedBox(height: 12),
-        const Text(
-          'Unlock All Languages',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          '$names and $more more — one-time purchase, yours forever. '
-              'No subscription.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
-        ),
-        const SizedBox(height: 28),
-
-        if (purchase.error != null) ...[
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              purchase.error!,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.red.shade900, fontSize: 13),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.green,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            onPressed: purchase.isLoading ? null : purchase.purchase,
-            child: purchase.isLoading
-                ? const SizedBox(
-              height: 22,
-              width: 22,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            )
-                : Text(
-              // Falls back only if the store hasn't answered yet.
-              'Unlock for ${purchase.price ?? '...'}',
-              style: const TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-
-        // Visible when the product never loaded — usually the product isn't
-        // active in Play Console yet, or propagation hasn't finished.
-        if (purchase.product == null && !purchase.isLoading)
-          Padding(
-            padding: const EdgeInsets.only(top: 4, bottom: 4),
-            child: Text(
-              'Store unavailable right now. Please try again later.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
-          ),
-
-        TextButton(
-          onPressed: purchase.isLoading ? null : purchase.restore,
-          child: const Text('Restore Purchases'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).maybePop(),
-          child: Text('Not now', style: TextStyle(color: Colors.grey.shade600)),
-        ),
-      ],
-    );
-  }
-}
-
-// ---------------------------------------------------------------- Gate
-
-/// Simple adult verification: answer a multiplication question.
-class ParentalGate extends StatefulWidget {
-  const ParentalGate({required this.onSuccess, super.key});
-
-  final VoidCallback onSuccess;
-
-  @override
-  State<ParentalGate> createState() => _ParentalGateState();
-}
-
-class _ParentalGateState extends State<ParentalGate> {
-  final _random = Random();
-  final _controller = TextEditingController();
-
-  late int _a;
-  late int _b;
+  // Parental gate
+  late int _a, _b;
+  final _answerController = TextEditingController();
   bool _wrong = false;
 
   @override
@@ -198,83 +26,262 @@ class _ParentalGateState extends State<ParentalGate> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _answerController.dispose();
     super.dispose();
   }
 
   void _newQuestion() {
-    _a = 6 + _random.nextInt(4); // 6...9
-    _b = 6 + _random.nextInt(4);
+    _a = 6 + DateTime.now().millisecond % 4; // 6-9
+    _b = 6 + (DateTime.now().microsecond % 4); // 6-9
+    _answerController.clear();
+    _wrong = false;
   }
 
-  void _submit() {
-    if (int.tryParse(_controller.text.trim()) == _a * _b) {
-      widget.onSuccess();
+  void _checkGate() {
+    final answer = int.tryParse(_answerController.text.trim());
+    if (answer == _a * _b) {
+      setState(() { _gatePassed = true; _wrong = false; });
     } else {
-      setState(() {
-        _wrong = true;
-        _controller.clear();
-        _newQuestion();
-      });
+      setState(() { _wrong = true; _newQuestion(); });
+    }
+  }
+
+  Future<void> _purchase() async {
+    setState(() => _purchasing = true);
+    try {
+      // Wire to in_app_purchase plugin for production
+      // For now simulate success after 1 second
+      await Future.delayed(const Duration(seconds: 1));
+      await context.read<PurchaseProvider>().unlock();
+      if (mounted) Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _purchasing = false);
+    }
+  }
+
+  Future<void> _restore() async {
+    setState(() => _purchasing = true);
+    try {
+      await context.read<PurchaseProvider>().restore();
+      if (mounted) Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _purchasing = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFF7F5FF), Color(0xFFEFF8FF)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: _gatePassed ? _purchaseContent() : _gateContent(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Parental gate ─────────────────────────────────────────────────
+
+  Widget _gateContent() {
     return Column(
       children: [
-        const Icon(Icons.escalator_warning, size: 60, color: Colors.blue),
-        const SizedBox(height: 14),
-        const Text(
-          'Ask a Grown-Up',
-          style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
-        ),
+        const SizedBox(height: 24),
+        const Icon(Icons.family_restroom, size: 64, color: Colors.blue),
+        const SizedBox(height: 16),
+        const Text('Ask a Grown-Up',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
         const SizedBox(height: 8),
-        Text(
-          'To continue, please solve:',
-          style: TextStyle(color: Colors.grey.shade700),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          '$_a × $_b = ?',
-          style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 18),
+        const Text('To continue, please solve:',
+            style: TextStyle(color: Colors.grey)),
+        const SizedBox(height: 20),
+        Text('$_a × $_b = ?',
+            style: const TextStyle(
+                fontSize: 32, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 16),
         SizedBox(
           width: 140,
           child: TextField(
-            controller: _controller,
+            controller: _answerController,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22),
-            onSubmitted: (_) => _submit(),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             decoration: InputDecoration(
-              hintText: 'Answer',
               filled: true,
-              fillColor: Colors.grey.withOpacity(0.15),
+              fillColor: Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
+              hintText: '?',
             ),
           ),
         ),
-        if (_wrong)
-          const Padding(
-            padding: EdgeInsets.only(top: 10),
-            child: Text('Try again', style: TextStyle(color: Colors.red)),
-          ),
+        if (_wrong) ...[
+          const SizedBox(height: 8),
+          const Text('Try again', style: TextStyle(color: Colors.red)),
+        ],
         const SizedBox(height: 20),
-        FilledButton(
-          onPressed: _submit,
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+        ElevatedButton(
+          onPressed: _checkGate,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            padding:
+            const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50)),
           ),
-          child: const Text(
-            'Continue',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          child: const Text('Continue',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Not now'),
+        ),
+      ],
+    );
+  }
+
+  // ── Purchase screen ───────────────────────────────────────────────
+
+  Widget _purchaseContent() {
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        const Text('🌍', style: TextStyle(fontSize: 72)),
+        const SizedBox(height: 16),
+        const Text('Unlock All Languages',
+            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+            textAlign: TextAlign.center),
+        const SizedBox(height: 12),
+        const Text(
+          'Hindi, Telugu, Tamil, Gujarati, Marathi, Urdu, Malayalam, '
+              'Kannada, Spanish, German, French, Portuguese, Japanese and '
+              'Chinese — one-time purchase, yours forever. No subscription.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey, height: 1.5),
+        ),
+        const SizedBox(height: 32),
+
+        // Pricing card
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.orange.shade300, width: 2),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.orange.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4)),
+            ],
           ),
+          child: Column(
+            children: [
+              Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text('Best Value',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12)),
+              ),
+              const SizedBox(height: 12),
+              const Text('All Languages',
+                  style: TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              const Text('\$1.99',
+                  style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black87)),
+              const Text('One-time purchase',
+                  style: TextStyle(color: Colors.grey, fontSize: 12)),
+              const SizedBox(height: 16),
+              ...[
+                'Everything in Free',
+                '14 more languages',
+                'Hindi, Telugu, Tamil & more',
+                'Japanese, Chinese & more',
+                'Yours forever',
+              ].map((f) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle,
+                        color: Colors.green, size: 18),
+                    const SizedBox(width: 8),
+                    Text(f,
+                        style: const TextStyle(fontSize: 13)),
+                  ],
+                ),
+              )),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Buy button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _purchasing ? null : _purchase,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+            ),
+            child: _purchasing
+                ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2))
+                : const Text('Unlock for \$1.99',
+                style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        TextButton(
+          onPressed: _purchasing ? null : _restore,
+          child: const Text('Restore Purchases'),
+        ),
+
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Not now',
+              style: TextStyle(color: Colors.grey)),
+        ),
+
+        const SizedBox(height: 16),
+        const Text(
+          'easystepkids.com',
+          style: TextStyle(fontSize: 11, color: Colors.grey),
         ),
       ],
     );

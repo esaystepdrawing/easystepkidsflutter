@@ -30,3 +30,6 @@ android/**/.gradle
 android/**/local.properties
 android/**/GeneratedPluginRegistrant.java
 android/.gradle
+
+.flutter-plugins-dependencies *
+.flutter-plugins *

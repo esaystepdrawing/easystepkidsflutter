@@ -1,4 +1,5 @@
 import 'dart:ui' show PointMode;
+import 'models.dart';
 
 import 'package:flutter/material.dart';
 
@@ -74,8 +75,6 @@ class DrawingCanvas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Listener (raw pointer events) rather than GestureDetector so a single
-    // tap also paints a dot, matching DragGesture(minimumDistance: 0) on iOS.
     return Listener(
       behavior: HitTestBehavior.opaque,
       onPointerDown: (e) => model.begin(e.localPosition),
@@ -113,7 +112,6 @@ class _StrokePainter extends CustomPainter {
         ..strokeJoin = StrokeJoin.round;
 
       if (stroke.points.length == 1) {
-        // A single tap draws a dot.
         canvas.drawPoints(
           PointMode.points,
           stroke.points,
@@ -137,9 +135,14 @@ class _StrokePainter extends CustomPainter {
 // ---------------------------------------------------------------- Palette
 
 class ColorPalette extends StatelessWidget {
-  const ColorPalette({required this.model, super.key});
+  const ColorPalette({
+    required this.model,
+    this.isVertical = false,
+    super.key,
+  });
 
   final DrawingModel model;
+  final bool isVertical;
 
   static const List<Color> colors = <Color>[
     Colors.red,
@@ -158,39 +161,60 @@ class ColorPalette extends StatelessWidget {
     return AnimatedBuilder(
       animation: model,
       builder: (context, _) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: colors.map((color) {
-              final selected = model.selectedColor.value == color.value;
-              return GestureDetector(
-                onTap: () => model.setColor(color),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  margin: const EdgeInsets.symmetric(horizontal: 5),
-                  width: selected ? 40 : 34,
-                  height: selected ? 40 : 34,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: selected ? 4 : 0,
-                    ),
-                    boxShadow: selected
-                        ? const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(0, 1),
-                      )
-                    ]
-                        : null,
-                  ),
+        final children = colors.map((color) {
+          final selected = model.selectedColor.value == color.value;
+          final double diameter = isVertical ? (selected ? 32 : 26) : (selected ? 38 : 32);
+
+          return GestureDetector(
+            onTap: () => model.setColor(color),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              margin: EdgeInsets.symmetric(
+                horizontal: isVertical ? 0 : 4,
+                vertical: isVertical ? 4 : 0,
+              ),
+              width: diameter,
+              height: diameter,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: selected ? 3 : 0,
                 ),
-              );
-            }).toList(),
+                boxShadow: selected
+                    ? const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 1),
+                  )
+                ]
+                    : null,
+              ),
+            ),
+          );
+        }).toList();
+
+        return Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: isVertical ? 2 : 4,
+            horizontal: isVertical ? 4 : 2,
+          ),
+          child: isVertical
+              ? SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: children,
+            ),
+          )
+              : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: children,
+            ),
           ),
         );
       },
@@ -201,12 +225,15 @@ class ColorPalette extends StatelessWidget {
 // ---------------------------------------------------------------- Brush
 
 class BrushPalette extends StatelessWidget {
-  const BrushPalette({required this.model, super.key});
+  const BrushPalette({
+    required this.model,
+    this.isVertical = false,
+    super.key,
+  });
 
   final DrawingModel model;
+  final bool isVertical;
 
-  /// Thin / medium / thick. Thin matters for long words like "Wednesday"
-  /// where a fat stroke smears adjacent letters together.
   static const List<double> sizes = <double>[6, 11, 18];
 
   @override
@@ -214,57 +241,180 @@ class BrushPalette extends StatelessWidget {
     return AnimatedBuilder(
       animation: model,
       builder: (context, _) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: sizes.map((size) {
-            final selected = (model.lineWidth - size).abs() < 0.5;
-            return GestureDetector(
-              onTap: () => model.setLineWidth(size),
-              child: Container(
-                width: 44,
-                height: 34,
-                margin: const EdgeInsets.symmetric(horizontal: 5),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? Colors.white
-                      : Colors.white.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: selected ? Colors.black54 : Colors.transparent,
-                    width: 2,
-                  ),
+        final children = sizes.map((size) {
+          final selected = (model.lineWidth - size).abs() < 0.5;
+          return GestureDetector(
+            onTap: () => model.setLineWidth(size),
+            child: Container(
+              width: isVertical ? 32 : 40,
+              height: isVertical ? 32 : 32,
+              margin: EdgeInsets.symmetric(
+                horizontal: isVertical ? 0 : 4,
+                vertical: isVertical ? 3 : 0,
+              ),
+              decoration: BoxDecoration(
+                color: selected ? Colors.white : Colors.white.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: selected ? Colors.black54 : Colors.transparent,
+                  width: 1.5,
                 ),
-                child: Center(
-                  child: Container(
-                    width: size,
-                    height: size,
-                    decoration: BoxDecoration(
-                      color: model.selectedColor,
-                      shape: BoxShape.circle,
-                    ),
+              ),
+              child: Center(
+                child: Container(
+                  width: size * (isVertical ? 0.75 : 1.0),
+                  height: size * (isVertical ? 0.75 : 1.0),
+                  decoration: BoxDecoration(
+                    color: model.selectedColor,
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
-            );
-          }).toList(),
+            ),
+          );
+        }).toList();
+
+        return isVertical
+            ? Column(
+          mainAxisSize: MainAxisSize.min,
+          children: children,
+        )
+            : Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: children,
         );
       },
     );
   }
 }
 
-// ---------------------------------------------------------------- Background
+// ---------------------------------------------------------------- Tracing Screen Layout
 
-class BackgroundPalette {
-  static const List<Color> colors = <Color>[
-    Color(0xFFFFF2CC), // cream
-    Color(0xFFD9F2FF), // sky
-    Color(0xFFE0FFE0), // mint
-    Color(0xFFFFE0EB), // rose
-    Color(0xFFEDE0FF), // lavender
-    Color(0xFFFFEBD6), // peach
-    Color(0xFFDBFAF5), // aqua
-  ];
+/// Responsive layout container:
+/// • Horizontal (Landscape): Tracing Canvas on LEFT, Image/Guide on RIGHT.
+/// • Vertical (Portrait): Image/Guide on TOP, Tracing Canvas below, Palettes at BOTTOM.
+class TracingResponsiveLayout extends StatelessWidget {
+  const TracingResponsiveLayout({
+    required this.model,
+    required this.canvasStack,
+    required this.referenceImageOrGuide,
+    this.topActions,
+    super.key,
+  });
 
-  static Color at(int index) => colors[index.abs() % colors.length];
+  final DrawingModel model;
+  final Widget canvasStack;             // Canvas with dotted letter/guide underneath
+  final Widget referenceImageOrGuide;   // Visual asset image or reference card
+  final Widget? topActions;             // Undo, Clear, Sound buttons
+
+  @override
+  Widget build(BuildContext context) {
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+    if (isLandscape) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Left rail: Slim vertical color & brush pickers
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.04),
+              border: const Border(right: BorderSide(color: Colors.black12, width: 1)),
+            ),
+            child: Column(
+              children: [
+                BrushPalette(model: model, isVertical: true),
+                const SizedBox(height: 6),
+                const Divider(height: 1, thickness: 1, color: Colors.black12),
+                const SizedBox(height: 6),
+                Expanded(child: ColorPalette(model: model, isVertical: true)),
+              ],
+            ),
+          ),
+
+          // Left area: Main Tracing Canvas
+          Expanded(
+            flex: 3,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  color: Colors.white,
+                  child: canvasStack,
+                ),
+              ),
+            ),
+          ),
+
+          // Right area: Reference Image / Drawing / Example
+          Expanded(
+            flex: 2,
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  if (topActions != null) ...[
+                    topActions!,
+                    const SizedBox(height: 8),
+                  ],
+                  Expanded(child: Center(child: referenceImageOrGuide)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Portrait / Vertical: standard stacked layout
+    return Column(
+      children: [
+        if (topActions != null) topActions!,
+        // Top: Reference Image
+        SizedBox(
+          height: 140,
+          child: Center(child: referenceImageOrGuide),
+        ),
+        // Middle: Tracing Canvas
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 6,
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: canvasStack,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        // Bottom: Palettes
+        BrushPalette(model: model, isVertical: false),
+        ColorPalette(model: model, isVertical: false),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
 }
