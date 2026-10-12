@@ -1,0 +1,60 @@
+{
+  "id": "vegetables_tomato_l3",
+  "subject": "tomato",
+  "title": "Tomato",
+  "category": "vegetables",
+  "level": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "strokeWidth": 14,
+  "showColorHints": true,
+  "palette": [
+    {
+      "number": 1,
+      "name": "red",
+      "hex": "#E53935"
+    },
+    {
+      "number": 2,
+      "name": "green",
+      "hex": "#43A047"
+    }
+  ],
+  "regions": [
+    {
+      "id": "body",
+      "number": 1,
+      "d": "M 182 590 C 182 435.4 329.7 310 512 310 C 694.3 310 842 435.4 842 590 C 842 744.6 694.3 870 512 870 C 329.7 870 182 744.6 182 590 Z",
+      "label": [
+        512,
+        640
+      ],
+      "labelSize": 150
+    },
+    {
+      "id": "calyx",
+      "number": 2,
+      "d": "M 512 495 L 462.6 393 L 350.3 377.5 L 432.1 299 L 412.1 187.5 L 512 241 L 611.9 187.5 L 591.9 299 L 673.7 377.5 L 561.4 393 Z",
+      "label": [
+        512,
+        322
+      ],
+      "labelSize": 48
+    },
+    {
+      "id": "stem",
+      "number": 2,
+      "d": "M 501 150 L 523 150 Q 537 150 537 164 L 537 266 Q 537 280 523 280 L 501 280 Q 487 280 487 266 L 487 164 Q 487 150 501 150 Z",
+      "label": [
+        512,
+        196
+      ],
+      "labelSize": 32
+    }
+  ],
+  "details": []
+}

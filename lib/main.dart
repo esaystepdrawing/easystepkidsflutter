@@ -14,6 +14,16 @@ import 'free_draw_screen.dart';
 import 'xylophone_screen.dart';
 import 'promo_banner.dart';
 import 'line_tracing_screen.dart';
+import 'kids_activities/activity_strings.dart';
+import 'kids_activities/app_bridge.dart';
+import 'kids_activities/color_by_number_screen.dart';
+import 'kids_activities/maze_game_screen.dart';
+import 'kids_activities/shadow_match_screen.dart';
+import 'kids_activities/advanced_quiz.dart';
+import 'kids_activities/advanced_quiz_screen.dart';
+import 'kids_activities/connect_dots_screen.dart';
+import 'kids_activities/jigsaw_screen.dart';
+import 'kids_activities/sort_it_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -299,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontSize: isTablet ? 28.0 : 22.0,
                           fontWeight: FontWeight.w900,
                           color: const Color(0xFF1A1A2E))),
-                  Text('SAI — Sketch, Art, Imagine',
+                  Text('SAI — Smart, Adaptive, Inspiring',
                       style: TextStyle(
                           fontSize: isTablet ? 14.0 : 11.0,
                           color: Colors.grey,
@@ -577,9 +587,22 @@ class _LanguageCard extends StatelessWidget {
 
 // ── Category Screen ───────────────────────────────────────────────────
 
-class CategoryScreen extends StatelessWidget {
+enum _ActivityTab { learn, play, advanced }
+
+class CategoryScreen extends StatefulWidget {
   const CategoryScreen({required this.language, super.key});
   final AppLanguage language;
+
+  @override
+  State<CategoryScreen> createState() => _CategoryScreenState();
+}
+
+class _CategoryScreenState extends State<CategoryScreen> {
+  /// The last tab used, remembered while the app is running.
+  static _ActivityTab _lastTab = _ActivityTab.learn;
+  _ActivityTab _tab = _lastTab;
+
+  AppLanguage get language => widget.language;
 
   @override
   Widget build(BuildContext context) {
@@ -587,80 +610,131 @@ class CategoryScreen extends StatelessWidget {
       appBar: AppBar(title: Text(language.name)),
       body: Container(
         color: const Color(0xFFF7F5FF),
-        child: OrientationBuilder(builder: (ctx, orientation) {
-          final isTablet = MediaQuery.of(ctx).size.shortestSide > 600;
-          final isLandscape = orientation == Orientation.landscape;
-          return (isLandscape && !isTablet)
-              ? _landscapeLayout(ctx)
-              : _portraitLayout(ctx);
-        }),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                child: _tabBar(),
+              ),
+              Expanded(
+                child: _tab == _ActivityTab.learn
+                    ? _learnGrid(context)
+                    : (_tab == _ActivityTab.play ? _playGrid(context) : _advancedGrid(context)),
+              ),
+              _AppFooter(onSoundHelp: () => _openSoundHelp(context)),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _portraitLayout(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Text(
-            language.nativeName,
-            style: const TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.w900,
-                color: Colors.blue),
-          ),
-        ),
-        Expanded(child: _categoryGrid(context)),
-        _puzzleButton(context),
-        _AppFooter(onSoundHelp: () => _openSoundHelp(context)),
-      ],
-    );
+  // ── Tabs ──
+
+  String _tabLabel(_ActivityTab tab) {
+    switch (tab) {
+      case _ActivityTab.learn:
+        return 'Learn';
+      case _ActivityTab.play:
+        return 'Play';
+      case _ActivityTab.advanced:
+        return 'Advanced';
+    }
   }
 
-  Widget _landscapeLayout(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 260,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
-            child: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      language.nativeName,
-                      style: const TextStyle(
-                          fontSize: 38,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.blue),
-                      textAlign: TextAlign.center,
-                    ),
+  String? _tabLocal(_ActivityTab tab) => ActivityStrings.local(tab.name, language.id);
+
+  IconData _tabIcon(_ActivityTab tab) {
+    switch (tab) {
+      case _ActivityTab.learn:
+        return Icons.edit;
+      case _ActivityTab.play:
+        return Icons.sports_esports;
+      case _ActivityTab.advanced:
+        return Icons.star;
+    }
+  }
+
+  Color _tabColor(_ActivityTab tab) {
+    switch (tab) {
+      case _ActivityTab.learn:
+        return const Color(0xFF3B6CF4);
+      case _ActivityTab.play:
+        return const Color(0xFF9333EA);
+      case _ActivityTab.advanced:
+        return const Color(0xFFF97316);
+    }
+  }
+
+  Widget _tabBar() {
+    final unlocked = context.watch<PurchaseProvider>().isUnlocked;
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        children: [
+          for (final tab in _ActivityTab.values)
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() {
+                  _tab = tab;
+                  _lastTab = tab;
+                }),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  constraints: const BoxConstraints(minHeight: 46),
+                  decoration: BoxDecoration(
+                    color: _tab == tab ? _tabColor(tab) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        (tab == _ActivityTab.advanced && !unlocked) ? Icons.lock : _tabIcon(tab),
+                        size: 20,
+                        color: _tab == tab ? Colors.white : Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: _BilingualLabel(
+                          local: _tabLocal(tab),
+                          english: _tabLabel(tab),
+                          color: _tab == tab ? Colors.white : Colors.grey.shade600,
+                          mainSize: 16,
+                          englishSize: 10,
+                          mainLines: 1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                _puzzleButton(context),
-                const SizedBox(height: 6),
-                _AppFooter(onSoundHelp: () => _openSoundHelp(context)),
-              ],
+              ),
             ),
-          ),
-        ),
-        const VerticalDivider(
-            width: 1, thickness: 1, color: Color(0xFFE2E8F0)),
-        Expanded(child: _categoryGrid(context)),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _categoryGrid(BuildContext context) {
+  // ── Learn: all categories, small tiles (3 across on a phone) ──
+
+  Widget _learnGrid(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 160,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.05,
+        maxCrossAxisExtent: 125,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 0.95,
       ),
       itemCount: Category.values.length,
       itemBuilder: (context, i) {
@@ -668,80 +742,130 @@ class CategoryScreen extends StatelessWidget {
         return _CategoryCard(
           category: cat,
           language: language,
-          onTap: () {
-            if (cat == Category.sounds) {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const SoundScreen()));
-            } else if (cat == Category.xylophone) {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const XylophoneScreen()));
-            } else if (cat == Category.lines) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => LineTracingScreen()),
-              );
-            } else {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => TracingScreen(category: cat)));
-            }
-          },
+          onTap: () => _openCategory(context, cat),
         );
       },
     );
   }
 
-  Widget _puzzleButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: GestureDetector(
-        onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const PuzzleScreen())),
-        child: Container(
-          width: double.infinity,
-          padding:
-          const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF9333EA), Color(0xFF4F46E5)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.purple.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.gamepad, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text('Puzzle Game',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right,
-                  color: Colors.white, size: 20),
-            ],
-          ),
-        ),
+  void _openCategory(BuildContext context, Category cat) {
+    if (cat == Category.sounds) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const SoundScreen()));
+    } else if (cat == Category.xylophone) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const XylophoneScreen()));
+    } else if (cat == Category.lines) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => LineTracingScreen()));
+    } else {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => TracingScreen(category: cat)));
+    }
+  }
+
+  // ── Play: the games, big tiles (2 across on a phone) ──
+
+  Widget _playGrid(BuildContext context) {
+    final kids = kidsLanguageFor(language);
+    final games = <_GameInfo>[
+      _GameInfo(
+        title: 'Shadow Match',
+        localTitle: ActivityStrings.local('shadowMatch', language.id),
+        icon: Icons.contrast,
+        colors: const [Color(0xFFEC4899), Color(0xFFA855F7)],
+        build: () => ShadowMatchScreen(language: kids),
+        premium: false, // the one free game in English
       ),
+      _GameInfo(
+        title: 'Jigsaw',
+        localTitle: ActivityStrings.local('jigsaw', language.id),
+        icon: Icons.extension,
+        colors: const [Color(0xFF3B82F6), Color(0xFF06B6D4)],
+        build: () => JigsawScreen(language: kids),
+      ),
+      _GameInfo(
+        title: 'Connect the Dots',
+        localTitle: ActivityStrings.local('connectDots', language.id),
+        icon: Icons.timeline,
+        colors: const [Color(0xFFF97316), Color(0xFFEAB308)],
+        build: () => ConnectDotsScreen(language: kids),
+      ),
+      _GameInfo(
+        title: 'Sort It',
+        localTitle: ActivityStrings.local('sortIt', language.id),
+        icon: Icons.inventory_2,
+        colors: const [Color(0xFF92400E), Color(0xFFF97316)],
+        build: () => SortItScreen(language: kids),
+      ),
+      _GameInfo(
+        title: 'Maze',
+        localTitle: ActivityStrings.local('maze', language.id),
+        icon: Icons.route,
+        colors: const [Color(0xFF22C55E), Color(0xFF14B8A6)],
+        build: () => MazeGameScreen(language: kids),
+      ),
+      _GameInfo(
+        title: 'Fun Coloring',
+        localTitle: ActivityStrings.local('coloring', language.id),
+        icon: Icons.palette,
+        colors: const [Color(0xFFF97316), Color(0xFFEF4444)],
+        build: () => ColorByNumberScreen(language: kids),
+      ),
+      _GameInfo(
+        title: 'Puzzle Game',
+        localTitle: ActivityStrings.local('puzzle', language.id),
+        subtitle: 'Spin the wheel & play!',
+        icon: Icons.sports_esports,
+        colors: const [Color(0xFF9333EA), Color(0xFF4F46E5)],
+        build: () => const PuzzleScreen(),
+      ),
+    ];
+
+    return _gameGrid(context, games);
+  }
+
+  // ── Advanced: number, letter and thinking quizzes (all paid) ──
+
+  Widget _advancedGrid(BuildContext context) {
+    final kids = kidsLanguageFor(language);
+    final games = [
+      for (final activity in advancedActivitiesFor(language.id))
+        _GameInfo(
+          title: activity.title,
+          localTitle: ActivityStrings.local(activity.name, language.id),
+          icon: activity.icon,
+          colors: activity.colors,
+          build: () => AdvancedQuizScreen(activity: activity, language: kids),
+        ),
+    ];
+    return _gameGrid(context, games);
+  }
+
+  Widget _gameGrid(BuildContext context, List<_GameInfo> games) {
+    final unlocked = context.watch<PurchaseProvider>().isUnlocked;
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 230,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 1.0,
+      ),
+      itemCount: games.length,
+      itemBuilder: (context, i) {
+        final game = games[i];
+        final locked = game.premium && !unlocked;
+        return _GameTile(
+          info: game,
+          locked: locked,
+          onTap: () {
+            if (locked) {
+              // the paywall asks a grown-up first
+              Navigator.push(context, MaterialPageRoute(builder: (_) => PaywallScreen()));
+              return;
+            }
+            connectKidsSpeech(context);
+            Navigator.push(context, MaterialPageRoute(builder: (_) => game.build()));
+          },
+        );
+      },
     );
   }
 
@@ -750,15 +874,14 @@ class CategoryScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius:
-        BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => SoundHelpSheet(),
     );
   }
 }
 
-// ── Category card ─────────────────────────────────────────────────────
+// ── Category card (small) ─────────────────────────────────────────────
 
 class _CategoryCard extends StatelessWidget {
   const _CategoryCard({
@@ -785,43 +908,167 @@ class _CategoryCard extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.25),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
+            BoxShadow(color: color.withOpacity(0.25), blurRadius: 6, offset: const Offset(0, 3)),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(category.iconEmoji,
-                style: const TextStyle(fontSize: 30)),
+            Text(category.iconEmoji, style: const TextStyle(fontSize: 28)),
             const SizedBox(height: 4),
-            Text(
-              category.title,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12),
-            ),
-            const SizedBox(height: 2),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                category.localizedTitle(language.id),
-                style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: _BilingualLabel(
+                local: language.id == 'en' ? null : category.localizedTitle(language.id),
+                english: category.title,
+                color: Colors.white,
+                mainSize: 13,
+                englishSize: 10,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Game tile (big) ───────────────────────────────────────────────────
+
+class _GameInfo {
+  const _GameInfo({
+    required this.title,
+    required this.icon,
+    required this.colors,
+    required this.build,
+    this.subtitle,
+    this.localTitle,
+    this.premium = true,
+  });
+
+  /// Name in the chosen language; null in English (or when there is no translation).
+  final String? localTitle;
+
+  /// Needs the purchase, even in English.
+  final bool premium;
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final List<Color> colors;
+  final Widget Function() build;
+}
+
+class _GameTile extends StatelessWidget {
+  const _GameTile({required this.info, required this.onTap, this.locked = false});
+
+  final _GameInfo info;
+  final VoidCallback onTap;
+  final bool locked;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        children: [
+          Positioned.fill(child: _body()),
+          if (locked)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                child: Icon(Icons.lock, size: 16, color: Colors.orange.shade400),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _body() {
+    return Opacity(
+      opacity: locked ? 0.85 : 1,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: info.colors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(color: info.colors.last.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(info.icon, size: 46, color: Colors.white),
+            const SizedBox(height: 8),
+            _BilingualLabel(
+              local: info.localTitle,
+              english: info.title,
+              color: Colors.white,
+              mainSize: 18,
+              englishSize: 12,
+            ),
+            // the English tagline only when the tile is in English; otherwise it is too much text
+            if (info.localTitle == null && info.subtitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                info.subtitle!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Two-line label: local word big, English small underneath ─────────
+
+class _BilingualLabel extends StatelessWidget {
+  const _BilingualLabel({
+    required this.local,
+    required this.english,
+    required this.color,
+    required this.mainSize,
+    required this.englishSize,
+    this.mainLines = 2,
+  });
+
+  final String? local;
+  final String english;
+  final Color color;
+  final double mainSize;
+  final double englishSize;
+  final int mainLines;
+
+  @override
+  Widget build(BuildContext context) {
+    final main = TextStyle(color: color, fontSize: mainSize, fontWeight: FontWeight.w800);
+    final small = TextStyle(
+      color: color.withOpacity(0.85),
+      fontSize: englishSize,
+      fontWeight: FontWeight.w600,
+    );
+    final top = local;
+    if (top == null || top.isEmpty || top == english) {
+      return Text(english,
+          textAlign: TextAlign.center, maxLines: mainLines, overflow: TextOverflow.ellipsis, style: main);
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(top, textAlign: TextAlign.center, maxLines: mainLines, overflow: TextOverflow.ellipsis, style: main),
+        Text(english, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: small),
+      ],
     );
   }
 }

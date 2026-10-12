@@ -1,0 +1,60 @@
+{
+  "id": "fruits_banana_l3",
+  "subject": "banana",
+  "title": "Banana",
+  "category": "fruits",
+  "level": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "strokeWidth": 14,
+  "showColorHints": true,
+  "palette": [
+    {
+      "number": 1,
+      "name": "yellow",
+      "hex": "#FDD835"
+    },
+    {
+      "number": 2,
+      "name": "brown",
+      "hex": "#8D6E63"
+    }
+  ],
+  "regions": [
+    {
+      "id": "body",
+      "number": 1,
+      "d": "M 250 300 C 220 600 480 860 820 760 L 840 690 C 600 720 400 560 350 290 Z",
+      "label": [
+        470,
+        622
+      ],
+      "labelSize": 70
+    },
+    {
+      "id": "stem",
+      "number": 2,
+      "d": "M 232 196 L 345 182 L 352 292 L 248 302 Z",
+      "label": [
+        294,
+        232
+      ],
+      "labelSize": 40
+    },
+    {
+      "id": "tip",
+      "number": 2,
+      "d": "M 820 760 L 840 690 C 920 672 968 716 956 772 C 944 822 862 806 820 760 Z",
+      "label": [
+        890,
+        724
+      ],
+      "labelSize": 40
+    }
+  ],
+  "details": []
+}

@@ -1,0 +1,75 @@
+{
+  "id": "fruits_apple_l3",
+  "subject": "apple",
+  "title": "Apple",
+  "category": "fruits",
+  "level": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "strokeWidth": 14,
+  "showColorHints": true,
+  "palette": [
+    {
+      "number": 1,
+      "name": "red",
+      "hex": "#E53935"
+    },
+    {
+      "number": 2,
+      "name": "green",
+      "hex": "#43A047"
+    },
+    {
+      "number": 3,
+      "name": "brown",
+      "hex": "#8D6E63"
+    }
+  ],
+  "regions": [
+    {
+      "id": "body",
+      "number": 1,
+      "d": "M 512 330 C 430 250 200 270 200 520 C 200 760 380 900 512 850 C 644 900 824 760 824 520 C 824 270 594 250 512 330 Z",
+      "label": [
+        512,
+        590
+      ],
+      "labelSize": 150
+    },
+    {
+      "id": "leaf_left",
+      "number": 2,
+      "d": "M 492 280 C 440 185 320 180 262 222 C 300 312 410 330 492 280 Z",
+      "label": [
+        362,
+        228
+      ],
+      "labelSize": 50
+    },
+    {
+      "id": "leaf_right",
+      "number": 2,
+      "d": "M 546 275 C 600 165 745 150 812 192 C 778 296 645 326 546 275 Z",
+      "label": [
+        690,
+        212
+      ],
+      "labelSize": 54
+    },
+    {
+      "id": "stem",
+      "number": 3,
+      "d": "M 478 348 C 476 270 490 205 522 148 L 592 180 C 562 232 550 288 548 348 Z",
+      "label": [
+        522,
+        238
+      ],
+      "labelSize": 42
+    }
+  ],
+  "details": []
+}
