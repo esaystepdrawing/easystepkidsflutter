@@ -1,0 +1,171 @@
+{
+  "id": "vegetables_carrot_l4",
+  "subject": "carrot",
+  "title": "Carrot",
+  "category": "vegetables",
+  "level": 4,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "strokeWidth": 12,
+  "showColorHints": false,
+  "palette": [
+    {
+      "number": 1,
+      "name": "green",
+      "hex": "#43A047"
+    },
+    {
+      "number": 2,
+      "name": "orange",
+      "hex": "#FB8C00"
+    },
+    {
+      "number": 3,
+      "name": "yellow",
+      "hex": "#FDD835"
+    },
+    {
+      "number": 4,
+      "name": "brown",
+      "hex": "#8D6E63"
+    }
+  ],
+  "regions": [
+    {
+      "id": "sun",
+      "number": 3,
+      "d": "M 103 180 C 103 140.2 135.2 108 175 108 C 214.8 108 247 140.2 247 180 C 247 219.8 214.8 252 175 252 C 135.2 252 103 219.8 103 180 Z",
+      "label": [
+        175,
+        180
+      ],
+      "labelSize": 50
+    },
+    {
+      "id": "ground",
+      "number": 4,
+      "d": "M 30 850 C 190 815 350 885 512 850 C 674 815 834 885 994 850 L 994 954 Q 994 994 954 994 L 70 994 Q 30 994 30 954 Z",
+      "label": [
+        130,
+        945
+      ],
+      "labelSize": 50
+    },
+    {
+      "id": "leaf_left",
+      "number": 1,
+      "d": "M 501.4 394.6 C 413.4 385.8 307.8 315.4 290.2 209.8 C 387 218.6 475 289 501.4 394.6 Z",
+      "label": [
+        371.2,
+        291.8
+      ],
+      "labelSize": 47.8
+    },
+    {
+      "id": "leaf_right",
+      "number": 1,
+      "d": "M 522.6 394.6 C 610.6 385.8 716.2 315.4 733.8 209.8 C 637 218.6 549 289 522.6 394.6 Z",
+      "label": [
+        652.8,
+        291.8
+      ],
+      "labelSize": 47.8
+    },
+    {
+      "id": "leaf_top",
+      "number": 1,
+      "d": "M 512 399 C 448.6 324.2 466.2 209.8 512 157 C 557.8 209.8 575.4 324.2 512 399 Z",
+      "label": [
+        512.0,
+        271.7
+      ],
+      "labelSize": 50.3
+    },
+    {
+      "id": "body",
+      "number": 2,
+      "d": "M 512 905 C 448.6 764.2 360.6 553 369.4 429.8 C 378.2 359.4 645.8 359.4 654.6 429.8 C 663.4 553 575.4 764.2 512 905 Z",
+      "label": [
+        512.0,
+        565.0
+      ],
+      "labelSize": 105.6
+    },
+    {
+      "id": "tip",
+      "number": 3,
+      "d": "M 512 905 C 489.2 854.3 463.2 794.5 439.7 733 Q 512 693.4 584.3 733 C 560.8 794.5 534.8 854.3 512 905 Z",
+      "label": [
+        512.0,
+        790.6
+      ],
+      "labelSize": 46.7
+    }
+  ],
+  "details": [
+    {
+      "d": "M 265 180 L 293 180",
+      "fill": "none",
+      "strokeWidth": 9
+    },
+    {
+      "d": "M 238.6 243.6 L 258.4 263.4",
+      "fill": "none",
+      "strokeWidth": 9
+    },
+    {
+      "d": "M 175 270 L 175 298",
+      "fill": "none",
+      "strokeWidth": 9
+    },
+    {
+      "d": "M 111.4 243.6 L 91.6 263.4",
+      "fill": "none",
+      "strokeWidth": 9
+    },
+    {
+      "d": "M 85 180 L 57 180",
+      "fill": "none",
+      "strokeWidth": 9
+    },
+    {
+      "d": "M 111.4 116.4 L 91.6 96.6",
+      "fill": "none",
+      "strokeWidth": 9
+    },
+    {
+      "d": "M 175 90 L 175 62",
+      "fill": "none",
+      "strokeWidth": 9
+    },
+    {
+      "d": "M 238.6 116.4 L 258.4 96.6",
+      "fill": "none",
+      "strokeWidth": 9
+    },
+    {
+      "d": "M 391.4 473.8 L 448.6 479.1",
+      "fill": "none",
+      "strokeWidth": 7.9
+    },
+    {
+      "d": "M 580.6 447.4 L 635.2 442.1",
+      "fill": "none",
+      "strokeWidth": 7.9
+    },
+    {
+      "d": "M 558.6 676.2 L 600 670.9",
+      "fill": "none",
+      "strokeWidth": 7.9
+    },
+    {
+      "d": "M 457.4 746.6 L 494.4 751.9",
+      "fill": "none",
+      "strokeWidth": 7.9
+    }
+  ]
+}

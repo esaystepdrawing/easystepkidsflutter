@@ -1,0 +1,95 @@
+{
+  "id": "vehicles_rocket_l3",
+  "subject": "rocket",
+  "title": "Rocket",
+  "category": "vehicles",
+  "level": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "strokeWidth": 14,
+  "showColorHints": true,
+  "palette": [
+    {
+      "number": 1,
+      "name": "blue",
+      "hex": "#1E88E5"
+    },
+    {
+      "number": 2,
+      "name": "red",
+      "hex": "#E53935"
+    },
+    {
+      "number": 3,
+      "name": "yellow",
+      "hex": "#FDD835"
+    }
+  ],
+  "regions": [
+    {
+      "id": "fin_left",
+      "number": 2,
+      "d": "M 380 500 L 170 830 L 400 740 Z",
+      "label": [
+        305,
+        712
+      ],
+      "labelSize": 44
+    },
+    {
+      "id": "fin_right",
+      "number": 2,
+      "d": "M 644 500 L 854 830 L 624 740 Z",
+      "label": [
+        719,
+        712
+      ],
+      "labelSize": 44
+    },
+    {
+      "id": "flame",
+      "number": 3,
+      "d": "M 440 720 C 430 830 490 880 512 950 C 534 880 594 830 584 720 Z",
+      "label": [
+        512,
+        782
+      ],
+      "labelSize": 50
+    },
+    {
+      "id": "body",
+      "number": 1,
+      "d": "M 384 320 L 640 320 C 672 460 672 600 652 720 L 372 720 C 352 600 352 460 384 320 Z",
+      "label": [
+        512,
+        622
+      ],
+      "labelSize": 70
+    },
+    {
+      "id": "nose",
+      "number": 2,
+      "d": "M 384 320 C 400 230 450 160 512 90 C 574 160 624 230 640 320 Z",
+      "label": [
+        512,
+        242
+      ],
+      "labelSize": 60
+    },
+    {
+      "id": "window",
+      "number": 3,
+      "d": "M 432 470 C 432 425.8 467.8 390 512 390 C 556.2 390 592 425.8 592 470 C 592 514.2 556.2 550 512 550 C 467.8 550 432 514.2 432 470 Z",
+      "label": [
+        512,
+        455
+      ],
+      "labelSize": 60
+    }
+  ],
+  "details": []
+}

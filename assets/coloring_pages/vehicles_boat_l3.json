@@ -1,0 +1,91 @@
+{
+  "id": "vehicles_boat_l3",
+  "subject": "boat",
+  "title": "Boat",
+  "category": "vehicles",
+  "level": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "strokeWidth": 14,
+  "showColorHints": true,
+  "palette": [
+    {
+      "number": 1,
+      "name": "red",
+      "hex": "#E53935"
+    },
+    {
+      "number": 2,
+      "name": "yellow",
+      "hex": "#FDD835"
+    },
+    {
+      "number": 3,
+      "name": "blue",
+      "hex": "#1E88E5"
+    }
+  ],
+  "regions": [
+    {
+      "id": "flag",
+      "number": 1,
+      "d": "M 519 110 L 690 172 L 519 234 Z",
+      "label": [
+        566,
+        160
+      ],
+      "labelSize": 34
+    },
+    {
+      "id": "sail_left",
+      "number": 2,
+      "d": "M 490 200 L 490 590 L 210 590 Z",
+      "label": [
+        400,
+        490
+      ],
+      "labelSize": 80
+    },
+    {
+      "id": "sail_right",
+      "number": 2,
+      "d": "M 534 280 L 534 590 L 790 590 Z",
+      "label": [
+        612,
+        500
+      ],
+      "labelSize": 70
+    },
+    {
+      "id": "hull",
+      "number": 1,
+      "d": "M 170 640 L 854 640 L 750 800 L 274 800 Z",
+      "label": [
+        512,
+        695
+      ],
+      "labelSize": 70
+    },
+    {
+      "id": "water",
+      "number": 3,
+      "d": "M 60 800 C 160 750 260 850 360 800 C 460 750 560 850 660 800 C 760 750 860 850 964 800 L 964 960 L 60 960 Z",
+      "label": [
+        512,
+        878
+      ],
+      "labelSize": 56
+    }
+  ],
+  "details": [
+    {
+      "d": "M 512 100 L 512 640",
+      "fill": "none",
+      "strokeWidth": 14
+    }
+  ]
+}

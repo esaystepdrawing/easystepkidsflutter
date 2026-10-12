@@ -1,0 +1,95 @@
+{
+  "id": "farm_barn_l3",
+  "subject": "barn",
+  "title": "Barn",
+  "category": "farm",
+  "level": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "strokeWidth": 14,
+  "showColorHints": true,
+  "palette": [
+    {
+      "number": 1,
+      "name": "red",
+      "hex": "#E53935"
+    },
+    {
+      "number": 2,
+      "name": "brown",
+      "hex": "#8D6E63"
+    },
+    {
+      "number": 3,
+      "name": "yellow",
+      "hex": "#FDD835"
+    }
+  ],
+  "regions": [
+    {
+      "id": "roof",
+      "number": 2,
+      "d": "M 140 500 L 280 290 L 512 160 L 744 290 L 884 500 Z",
+      "label": [
+        350,
+        385
+      ],
+      "labelSize": 54
+    },
+    {
+      "id": "wall",
+      "number": 1,
+      "d": "M 220 470 L 804 470 L 804 870 L 220 870 Z",
+      "label": [
+        512,
+        540
+      ],
+      "labelSize": 70
+    },
+    {
+      "id": "loft_window",
+      "number": 3,
+      "d": "M 450 340 C 450 305.8 477.8 278 512 278 C 546.2 278 574 305.8 574 340 C 574 374.2 546.2 402 512 402 C 477.8 402 450 374.2 450 340 Z",
+      "label": [
+        512,
+        330
+      ],
+      "labelSize": 46
+    },
+    {
+      "id": "door",
+      "number": 3,
+      "d": "M 432 620 L 592 620 Q 607 620 607 635 L 607 855 Q 607 870 592 870 L 432 870 Q 417 870 417 855 L 417 635 Q 417 620 432 620 Z",
+      "label": [
+        512,
+        725
+      ],
+      "labelSize": 70
+    },
+    {
+      "id": "window_left",
+      "number": 3,
+      "d": "M 277 600 L 353 600 Q 365 600 365 612 L 365 688 Q 365 700 353 700 L 277 700 Q 265 700 265 688 L 265 612 Q 265 600 277 600 Z",
+      "label": [
+        315,
+        640
+      ],
+      "labelSize": 40
+    },
+    {
+      "id": "window_right",
+      "number": 3,
+      "d": "M 671 600 L 747 600 Q 759 600 759 612 L 759 688 Q 759 700 747 700 L 671 700 Q 659 700 659 688 L 659 612 Q 659 600 671 600 Z",
+      "label": [
+        709,
+        640
+      ],
+      "labelSize": 40
+    }
+  ],
+  "details": []
+}

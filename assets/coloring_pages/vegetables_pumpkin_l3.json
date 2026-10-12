@@ -1,0 +1,85 @@
+{
+  "id": "vegetables_pumpkin_l3",
+  "subject": "pumpkin",
+  "title": "Pumpkin",
+  "category": "vegetables",
+  "level": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "strokeWidth": 14,
+  "showColorHints": true,
+  "palette": [
+    {
+      "number": 1,
+      "name": "orange",
+      "hex": "#FB8C00"
+    },
+    {
+      "number": 2,
+      "name": "brown",
+      "hex": "#8D6E63"
+    },
+    {
+      "number": 3,
+      "name": "green",
+      "hex": "#43A047"
+    }
+  ],
+  "regions": [
+    {
+      "id": "stem",
+      "number": 2,
+      "d": "M 466 345 C 466 262 496 198 558 164 L 612 218 C 572 248 558 290 558 345 Z",
+      "label": [
+        520,
+        256
+      ],
+      "labelSize": 36
+    },
+    {
+      "id": "leaf",
+      "number": 3,
+      "d": "M 556 290 C 620 190 750 200 800 255 C 735 335 630 340 556 290 Z",
+      "label": [
+        682,
+        252
+      ],
+      "labelSize": 44
+    },
+    {
+      "id": "lobe_left",
+      "number": 1,
+      "d": "M 170 600 C 170 456.4 255.1 340 360 340 C 464.9 340 550 456.4 550 600 C 550 743.6 464.9 860 360 860 C 255.1 860 170 743.6 170 600 Z",
+      "label": [
+        255,
+        590
+      ],
+      "labelSize": 70
+    },
+    {
+      "id": "lobe_right",
+      "number": 1,
+      "d": "M 474 600 C 474 456.4 559.1 340 664 340 C 768.9 340 854 456.4 854 600 C 854 743.6 768.9 860 664 860 C 559.1 860 474 743.6 474 600 Z",
+      "label": [
+        769,
+        590
+      ],
+      "labelSize": 70
+    },
+    {
+      "id": "lobe_middle",
+      "number": 1,
+      "d": "M 342 600 C 342 445.4 418.1 320 512 320 C 605.9 320 682 445.4 682 600 C 682 754.6 605.9 880 512 880 C 418.1 880 342 754.6 342 600 Z",
+      "label": [
+        512,
+        600
+      ],
+      "labelSize": 130
+    }
+  ],
+  "details": []
+}

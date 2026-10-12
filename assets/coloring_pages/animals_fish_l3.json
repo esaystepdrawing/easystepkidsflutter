@@ -1,0 +1,86 @@
+{
+  "id": "animals_fish_l3",
+  "subject": "fish",
+  "title": "Fish",
+  "category": "animals",
+  "level": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "strokeWidth": 14,
+  "showColorHints": true,
+  "palette": [
+    {
+      "number": 1,
+      "name": "orange",
+      "hex": "#FB8C00"
+    },
+    {
+      "number": 2,
+      "name": "blue",
+      "hex": "#1E88E5"
+    }
+  ],
+  "regions": [
+    {
+      "id": "tail",
+      "number": 2,
+      "d": "M 700 512 L 920 330 C 890 450 890 574 920 694 Z",
+      "label": [
+        845,
+        498
+      ],
+      "labelSize": 60
+    },
+    {
+      "id": "fin_top",
+      "number": 2,
+      "d": "M 330 350 C 370 150 560 150 600 350 Z",
+      "label": [
+        465,
+        238
+      ],
+      "labelSize": 40
+    },
+    {
+      "id": "fin_bottom",
+      "number": 2,
+      "d": "M 380 680 C 400 870 540 870 560 680 Z",
+      "label": [
+        470,
+        745
+      ],
+      "labelSize": 36
+    },
+    {
+      "id": "body",
+      "number": 1,
+      "d": "M 150 512 C 150 401.5 284.3 312 450 312 C 615.7 312 750 401.5 750 512 C 750 622.5 615.7 712 450 712 C 284.3 712 150 622.5 150 512 Z",
+      "label": [
+        480,
+        500
+      ],
+      "labelSize": 130
+    }
+  ],
+  "details": [
+    {
+      "d": "M 234 455 C 234 435.1 250.1 419 270 419 C 289.9 419 306 435.1 306 455 C 306 474.9 289.9 491 270 491 C 250.1 491 234 474.9 234 455 Z",
+      "fill": "#FFFFFF",
+      "strokeWidth": 10
+    },
+    {
+      "d": "M 248 458 C 248 449.2 255.2 442 264 442 C 272.8 442 280 449.2 280 458 C 280 466.8 272.8 474 264 474 C 255.2 474 248 466.8 248 458 Z",
+      "fill": "#000000",
+      "strokeWidth": 0
+    },
+    {
+      "d": "M 178 568 Q 215 596 252 566",
+      "fill": "none",
+      "strokeWidth": 10
+    }
+  ]
+}
